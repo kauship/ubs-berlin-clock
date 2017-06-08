@@ -17,7 +17,26 @@ public class BerlinClock implements TimeConverter {
 	private static final String NEW_LINE = System.getProperty("line.separator");
 
 	enum TimeUnit {
-		HOURS, MINUTES, SECONDS
+		HOURS {
+			@Override
+			int endUnit() {
+				return 24;
+			}
+		},
+		MINUTES, SECONDS;
+
+		int startUnit() {
+			return 0;
+		}
+
+		int endUnit() {
+			return 60;
+		}
+
+		String range() {
+			return startUnit() + ":" + endUnit();
+		}
+
 	}
 
 	@Override
@@ -44,13 +63,21 @@ public class BerlinClock implements TimeConverter {
 		}
 		EnumMap<TimeUnit, Integer> inputMap = new EnumMap<>(TimeUnit.class);
 		try {
-			inputMap.put(TimeUnit.HOURS, Integer.parseInt(inputArr[0]));
-			inputMap.put(TimeUnit.MINUTES, Integer.parseInt(inputArr[1]));
-			inputMap.put(TimeUnit.SECONDS, Integer.parseInt(inputArr[2]));
+			inputMap.put(TimeUnit.HOURS, parseTimeArg(inputArr[0], TimeUnit.HOURS));
+			inputMap.put(TimeUnit.MINUTES, parseTimeArg(inputArr[1], TimeUnit.MINUTES));
+			inputMap.put(TimeUnit.SECONDS, parseTimeArg(inputArr[2], TimeUnit.SECONDS));
 		} catch (NumberFormatException e) {
 			throw new IllegalArgumentException("Input is not parsable, it should be of format: HH:MM:SS");
 		}
 		return inputMap;
+	}
+
+	private int parseTimeArg(String arg, TimeUnit unit) {
+		int time = Integer.parseInt(arg);
+		if (time < unit.startUnit() || time > unit.endUnit()) {
+			throw new IllegalArgumentException(unit + " arg should be in range of " + unit.range());
+		}
+		return time;
 	}
 
 	/**
